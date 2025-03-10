@@ -11,6 +11,21 @@ mongoose.connect("mongodb+srv://bhudev03:bhudev123@cluster0.frdi2.mongodb.net/to
 const app = express();
 app.use(express.json());
 
+function auth(req,res,next){
+    const token = req.headers.token;
+    const decodeData = jwt.verify(token,JWT_SECRET);
+
+    if(decodeData){
+        req.userId = decodeData.id
+        next();
+    }
+    else{
+        res.status(403).json({
+            msg : "Invalid Credentials"
+        })
+    }
+}
+
 
 app.post("/signup", async function(req, res) {
     const email = req.body.email
@@ -44,8 +59,13 @@ app.post("/signin",async function(req, res) {
 
     if(user){
         const token = jwt.sign({
-            id : user._id
+            id : user._id.toString()
         },JWT_SECRET)
+
+        res.json({
+            token : token,
+            msg : "You are signed in"
+        })
     }
     else{
         res.status(403).json({
@@ -55,13 +75,35 @@ app.post("/signin",async function(req, res) {
 });
 
 
-app.post("/todo", function(req, res) {
+app.post("/todo",auth,async function(req, res) {
+    const userId = req.userId
+    const title = req.body.title
+    const done = req.body.done
 
+
+    await TodoModel.create({
+        userId,
+        title,
+        done
+    })
+
+
+    res.json({
+        message : "Todo created"
+    })
 });
 
 
-app.get("/todos", function(req, res) {
+app.get("/todos",auth, async function(req, res) {
+    const userId = req.userId
 
+    const todos = await TodoModel.find({
+        userId
+    })
+
+    res.json({
+        todos,
+    })
 });
 
 app.listen(3000);
