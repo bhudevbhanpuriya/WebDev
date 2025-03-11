@@ -6,7 +6,7 @@ const mongoose = require("mongoose")
 const jwt = require("jsonwebtoken")
 const JWT_SECRET = "asdasd123"
 
-mongoose.connect("mongodb+srv://bhudev03:bhudev123@cluster0.frdi2.mongodb.net/todo-remiss-2")
+mongoose.connect("")
 
 const app = express();
 app.use(express.json());
@@ -32,12 +32,19 @@ app.post("/signup", async function(req, res) {
     const password = req.body.password
     const name = req.body.name
 
-    await UserModel.create({
-        email : email,
-        password : password,
-        name :name
-    })
-
+    try{
+        await UserModel.create({
+            email : email,
+            password : password,
+            name :name
+        })
+    }
+    catch{
+        return res.status(400).json({
+            msg : "User Already Exists!"
+        })
+    }
+    
     res.json({
         msg: "You're Signed up"
     })
