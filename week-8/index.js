@@ -4,22 +4,15 @@ const JWT_SECRET = "strangerthings"
 const zod = require("zod")
 const mongoose = require("mongoose")
 
+const {userRouter} = require("./routes/user");
+const {courseRouter} = require("./routes/course");
+
 
 const app = express();
 app.use(express.json())
 
-app.post("/signup",async function(req,res){
-    
-})
+app.use("/api/v1/user" , userRouter);
+app.use("/api/v1/courses" , courseRouter)
 
-app.post("/login",async function(req,res){
-    
-})
 
-app.post("/purchase",async function(req,res){
-    
-})
-
-app.get("/courses",async function(req,res){
-    
-})
+app.listen(3000)
