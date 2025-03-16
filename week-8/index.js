@@ -5,10 +5,10 @@ const {z} = require("zod")
 const mongoose = require("mongoose")
 const bcrypt = require("bcrypt");
 
-
 const {userRouter} = require("./routes/user");
 const {adminRouter} = require("./routes/admin");
 const {courseRouter} = require("./routes/course");
+
 
 const app = express();
 app.use(express.json())
