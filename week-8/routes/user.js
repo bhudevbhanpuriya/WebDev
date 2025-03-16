@@ -3,6 +3,8 @@ const {userModel} = require("../db")
 const userRouter = Router()
 const z = require("zod");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken")
+const JWT_USER_PASSWORD = "stanger"
 
 userRouter.post("/signup",async function(req,res){
     const requiredBody = z.object({
@@ -51,9 +53,38 @@ userRouter.post("/signup",async function(req,res){
     
 
 userRouter.post("/signin",async function(req,res){
-        
+        const {email , password} = req.body
+
+        const response = await userModel.findOne({
+            email : email
+        })
+
+        if(!response){
+            return res.status(403).json({
+                message : "No such users exists"
+            })
+        }
+
+        const passwordMatch = await bcrypt.compare(password,response.password)
+          
+        if(passwordMatch){
+            const token = jwt.sign({
+                id : response._id
+            },JWT_USER_PASSWORD)
+
+            res.json({
+                message : "Yay! You're Signed-In",
+                token : token
+            })
+        }
+        else{
+            return res.status(403).json({
+                message : "Invalid password or user"
+            })
+        }
 })
     
+
 userRouter.get("/purchases",async function(req,res){
         
 })
