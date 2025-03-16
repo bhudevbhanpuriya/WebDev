@@ -6,7 +6,7 @@ const {adminModel} = require("../db")
 const z = require("zod");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken")
-const JWT_USER_PASSWORD = "things"
+const JWT_ADMIN_PASSWORD = "things"
 
 
 adminRouter.post("/signup",async function(req,res){
@@ -72,7 +72,7 @@ adminRouter.post("/signin",async function(req,res){
         if(passwordMatch){
             const token = jwt.sign({
                 id : response._id
-            },JWT_USER_PASSWORD)
+            },JWT_ADMIN_PASSWORD)
 
             res.json({
                 message : "Yay! Admin Signed-In",
