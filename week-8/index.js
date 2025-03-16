@@ -1,15 +1,14 @@
 const express = require('express')
 const jwt = require("jsonwebtoken")
 const JWT_SECRET = "strangerthings"
-const zod = require("zod")
+const {z} = require("zod")
 const mongoose = require("mongoose")
-
+const bcrypt = require("bcrypt");
 
 
 const {userRouter} = require("./routes/user");
 const {adminRouter} = require("./routes/admin");
 const {courseRouter} = require("./routes/course");
-
 
 const app = express();
 app.use(express.json())
@@ -23,7 +22,6 @@ async function main(){
     await mongoose.connect("mongodb+srv://bhudev03:bhudev123@cluster0.frdi2.mongodb.net/course-selling-app")
     app.listen(3000)
     console.log("listening on port 3000");
-    
 }
 
 main()
