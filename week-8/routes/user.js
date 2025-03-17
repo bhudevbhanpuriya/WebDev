@@ -6,7 +6,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken")
 const {JWT_USER_PASSWORD} = require("../config")
 
-const {userMiddleware} = require("./middleware/user")
+const {userMiddleware} = require("../middleware/user.js")
 
 userRouter.post("/signup",async function(req,res){
     const requiredBody = z.object({
