@@ -5,7 +5,6 @@ function App() {
   return (
     <div>
       <h1>React Hooks</h1>
-
       <Counter />
     </div>
   )
@@ -40,3 +39,43 @@ function Counter() {
 }
 
 export default App;
+
+
+
+
+
+// import { useState, useEffect } from "react";
+
+// function App() {
+//     return (
+//         <div>
+//             <h1>React Hooks</h1>
+//             <Counter />
+//         </div>
+//     );
+// }
+
+// function Counter() {
+//     const [count, setCount] = useState(1);
+
+//     useEffect(() => {
+//         setInterval(() => {
+//             setCount(function (count) {
+//                 return count + 1;
+//             });
+//         }, 1000);
+
+//         console.log("Mounted");
+//     }, []); 
+
+
+//   return (
+//       <div>
+//         {count}
+//       </div>
+//   );
+// }
+
+// export default App;
+
+
