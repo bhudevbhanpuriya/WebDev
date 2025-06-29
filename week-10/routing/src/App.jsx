@@ -12,7 +12,6 @@ function App() {
           <Route path = "/post" element = {<Post/>} />
           <Route path = "*" element = {<NoPage/>} />
           
-         
         </Route>
       </Routes>
     </BrowserRouter>
