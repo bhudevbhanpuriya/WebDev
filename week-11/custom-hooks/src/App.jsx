@@ -1,26 +1,17 @@
 import { useState } from 'react'
 
 import './App.css'
-
-import {useFetch} from './hooks/usefetch'
-import { usePrev } from './hooks/usePrev'
+import { useDebounce } from './hooks/useDebounce'
 
 
 function App() {
-  const [cnt,setCnt] = useState(0)
-  const prev = usePrev(cnt);
-
-  function increase(){
-    setCnt(curr => curr+1);
+  function sendDataToBackend(){
+    fetch("api.amazon.com/search")
   }
+
+  const debounceFn = useDebounce(sendDataToBackend)
   return <>
-  <p>{cnt}</p>
-  <div>
-  <button onClick={increase}>Increase</button>
-  </div>
-  <div>
-    The previous value was {prev}
-  </div>
+    <input type="text" onChange={debounceFn} ></input>
   </>
 }
 
@@ -75,6 +66,29 @@ function App() {
   </div>
   <div>
     {JSON.stringify(data)};
+  </div>
+  </>
+}
+
+export default App
+
+
+-------------usePrev
+
+function App() {
+  const [cnt,setCnt] = useState(0)
+  const prev = usePrev(cnt);
+
+  function increase(){
+    setCnt(curr => curr+1);
+  }
+  return <>
+  <p>{cnt}</p>
+  <div>
+  <button onClick={increase}>Increase</button>
+  </div>
+  <div>
+    The previous value was {prev}
   </div>
   </>
 }
