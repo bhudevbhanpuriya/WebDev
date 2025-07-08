@@ -18,6 +18,7 @@ function userMiddlerware(req, res, next) {
         const decoded = JWT.verify(header, JWT_USER_PASSWORD);
         if (decoded) {
             req.userId = decoded.id;
+            console.log(req.userId);
             next();
         }
         else {

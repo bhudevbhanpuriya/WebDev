@@ -12,6 +12,8 @@ export async function userMiddlerware(req:CustomRequest , res:Response , next:Ne
 
     if(decoded){
         req.userId = decoded.id
+        console.log(req.userId);
+        
         next()
     }else{
         res.status(401).json({

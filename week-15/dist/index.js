@@ -28,8 +28,9 @@ const JWT_USER_PASSWORD = process.env.JWT_USER_PASSWORD;
 const mongoose_1 = __importDefault(require("mongoose"));
 const middleware_1 = require("./middleware");
 const MONGO_URL = process.env.MONGO_URL || "undefined";
-const { userModel } = require('./db');
-const { contentModel } = require('./db');
+const { userModel, contentModel, linkModel } = require('./db');
+// const {contentModel} = require('./db')
+const utils_1 = require("./utils");
 //bcrypt
 const bcrypt = require("bcrypt");
 const userProfileSchema = zod_1.default.object({
@@ -115,26 +116,90 @@ app.post('/api/v1/content', middleware_1.userMiddlerware, (req, res) => __awaite
     res.json({ message: "Content added" });
 }));
 //-------------------Get user content---------------------------------------------------
-app.get('/api/v1/content', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.get("/api/v1/content", middleware_1.userMiddlerware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     //@ts-ignore
-    const userId = req.userId;
+    const userId = req.userId; // User ID is fetched from middleware
+    // Fetch all content associated with the user ID and populate username
+    // The `populate` function is used to include additional details from the referenced `userId`.
+    // For example, it will fetch the username linked to the userId.
+    // Since we specified "username", only the username will be included in the result, 
+    // and other details like password won’t be fetched.
     const content = yield contentModel.find({ userId: userId }).populate("userId", "username");
     res.json(content); // Send the content as response
 }));
 //-------------------Delete---------------------------------------------------------------
-app.delete('/api/v1/content', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const contentId = req.body.contentId;
-    yield contentModel.deleteMany({
-        contentId,
-        userId: req.userId
-    });
-    res.json({
-        msg: "Deleted"
-    });
+app.delete('/api/v1/content', middleware_1.userMiddlerware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const contentId = req.body.contentId;
+        if (!contentId || !mongoose_1.default.Types.ObjectId.isValid(contentId)) {
+            res.status(400).json({ msg: "Invalid or missing contentId" });
+            return;
+        }
+        const result = yield contentModel.deleteOne({
+            _id: contentId,
+            userId: req.userId
+        });
+        if (result.deletedCount === 0) {
+            res.status(404).json({ msg: "No content found or unauthorized" });
+            return;
+        }
+        res.status(200).json({ msg: "Deleted successfully" });
+    }
+    catch (error) {
+        console.error("Error deleting content:", error);
+        res.status(500).json({ msg: "Server error" });
+    }
 }));
 //-------------------Share content--------------------------------------------------
-app.delete('/api/v1/brain/:shareLink', (req, res) => {
-});
+app.post('/api/v1/brain/share', middleware_1.userMiddlerware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { share } = req.body;
+    if (share) {
+        const existingLink = yield linkModel.findOne({ userId: req.userId });
+        if (existingLink) {
+            res.json({
+                hash: existingLink.hash
+            });
+            return;
+        }
+        //Generate a shareable link
+        const hash = (0, utils_1.random)(20);
+        yield linkModel.create({
+            userId: req.userId,
+            hash
+        });
+    }
+    // else logic is to delete the shareable link
+    else {
+        yield linkModel.deleteOne({
+            userId: req.userId
+        });
+        res.json({
+            msg: "link deactivated"
+        });
+    }
+}));
+app.get('/api/v1/brain/:shareLink', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const hash = req.params.shareLink;
+    const link = yield linkModel.findOne({ hash });
+    if (!link) {
+        res.status(404).json({
+            msg: " If the share link is invalid or sharing is disabled"
+        });
+        return;
+    }
+    const content = yield contentModel.find({ userId: link.userId });
+    const user = yield userModel.findOne({ _id: link.userId });
+    if (!user) {
+        res.status(404).json({
+            msg: 'User doesnt found'
+        });
+        return;
+    }
+    res.status(200).json({
+        username: user.firstName,
+        content
+    });
+}));
 //-------------------Main-Function---------------------------------------------------
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
