@@ -2,6 +2,8 @@ import mongoose, { Schema, Types } from "mongoose";
 // Use ObjectId type
 const ObjectId = Types.ObjectId;
 
+
+
 const userSchema = new Schema({
     email : {type: String , unique:true},
     password : String,
@@ -10,13 +12,19 @@ const userSchema = new Schema({
 })
 
 const contentSchema = new Schema({
-    type : String,
-    link : URL,
-    
+    title : String,
+    link : String,
+    userId : [{
+        type : mongoose.Types.ObjectId,
+        ref : "User",
+        required : true
+    }]
 })
 
 const userModel = mongoose.model('user',userSchema);
+const contentModel = mongoose.model('content',contentSchema)
 
 module.exports = {
-    userModel
+    userModel,
+    contentModel
 }

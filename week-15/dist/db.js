@@ -42,7 +42,18 @@ const userSchema = new mongoose_1.Schema({
     firstName: String,
     lastName: String
 });
+const contentSchema = new mongoose_1.Schema({
+    title: String,
+    link: String,
+    userId: [{
+            type: mongoose_1.default.Types.ObjectId,
+            ref: "User",
+            required: true
+        }]
+});
 const userModel = mongoose_1.default.model('user', userSchema);
+const contentModel = mongoose_1.default.model('content', contentSchema);
 module.exports = {
-    userModel
+    userModel,
+    contentModel
 };

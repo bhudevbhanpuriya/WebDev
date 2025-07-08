@@ -26,8 +26,10 @@ const JWT = require("jsonwebtoken");
 const JWT_USER_PASSWORD = process.env.JWT_USER_PASSWORD;
 //mongoose code
 const mongoose_1 = __importDefault(require("mongoose"));
+const middleware_1 = require("./middleware");
 const MONGO_URL = process.env.MONGO_URL || "undefined";
 const { userModel } = require('./db');
+const { contentModel } = require('./db');
 //bcrypt
 const bcrypt = require("bcrypt");
 const userProfileSchema = zod_1.default.object({
@@ -38,6 +40,7 @@ const userProfileSchema = zod_1.default.object({
         .max(20, "Password must be at most 20 characters")
         .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,20}$/, "Password must include uppercase, lowercase, number, and symbol")
 });
+//-------------------Sign-UP---------------------------------------------------
 app.post('/api/v1/signup', function (req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const { success, error } = userProfileSchema.safeParse(req.body);
@@ -69,6 +72,7 @@ app.post('/api/v1/signup', function (req, res) {
         });
     });
 });
+//-------------------Sign-IN---------------------------------------------------
 app.put('/api/v1/signin', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password } = req.body;
     const user = yield userModel.findOne({
@@ -97,14 +101,41 @@ app.put('/api/v1/signin', (req, res) => __awaiter(void 0, void 0, void 0, functi
         });
     }
 }));
-app.post('/api/v1/content', (req, res) => {
-});
-app.get('/api/v1/content', (req, res) => {
-});
-app.delete('/api/v1/content', (req, res) => {
-});
+//-------------------Add content---------------------------------------------------
+app.post('/api/v1/content', middleware_1.userMiddlerware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { link, type, title } = req.body;
+    // Create a new content entry linked to the logged-in user.
+    yield contentModel.create({
+        link,
+        // type,
+        title,
+        userId: req.userId, // userId is added by the middleware.
+        // tags: [] // Initialize tags as an empty array.
+    });
+    res.json({ message: "Content added" });
+}));
+//-------------------Get user content---------------------------------------------------
+app.get('/api/v1/content', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    //@ts-ignore
+    const userId = req.userId;
+    const content = yield contentModel.find({ userId: userId }).populate("userId", "username");
+    res.json(content); // Send the content as response
+}));
+//-------------------Delete---------------------------------------------------------------
+app.delete('/api/v1/content', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const contentId = req.body.contentId;
+    yield contentModel.deleteMany({
+        contentId,
+        userId: req.userId
+    });
+    res.json({
+        msg: "Deleted"
+    });
+}));
+//-------------------Share content--------------------------------------------------
 app.delete('/api/v1/brain/:shareLink', (req, res) => {
 });
+//-------------------Main-Function---------------------------------------------------
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         try {

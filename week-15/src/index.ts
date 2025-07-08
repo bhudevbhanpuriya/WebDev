@@ -21,9 +21,14 @@ import { userMiddlerware } from "./middleware";
 const MONGO_URL : string = process.env.MONGO_URL || "undefined";
 
 const {userModel} = require('./db')
+const {contentModel} = require('./db')
 
 //bcrypt
 const bcrypt = require("bcrypt")
+
+interface CustomRequest extends Request {
+  userId?: string; // or `string | null` if needed
+}
 
 
 const userProfileSchema = z.object({
@@ -38,6 +43,8 @@ const userProfileSchema = z.object({
         )
 });
 
+
+//-------------------Sign-UP---------------------------------------------------
 
 app.post('/api/v1/signup', async function (req : Request, res : Response) {
     const { success,error } = userProfileSchema.safeParse(req.body);
@@ -74,6 +81,8 @@ app.post('/api/v1/signup', async function (req : Request, res : Response) {
 })
 
 
+//-------------------Sign-IN---------------------------------------------------
+
 
 app.put('/api/v1/signin',async (req : Request, res : Response) => {
     const { email , password } = req.body;
@@ -109,22 +118,55 @@ app.put('/api/v1/signin',async (req : Request, res : Response) => {
 })
 
 
+//-------------------Add content---------------------------------------------------
 
-app.post('/api/v1/content',userMiddlerware, (req:Request, res:Response) => {
-    
+
+app.post('/api/v1/content',userMiddlerware,async (req:CustomRequest, res:Response) => {
+    const { link, type, title } = req.body;
+    // Create a new content entry linked to the logged-in user.
+    await contentModel.create({
+        link,
+        // type,
+        title,
+        userId: req.userId, // userId is added by the middleware.
+        // tags: [] // Initialize tags as an empty array.
+    });
+
+    res.json({ message: "Content added" }); 
 })
 
-app.get('/api/v1/content', (req, res) => {
-    
+//-------------------Get user content---------------------------------------------------
+
+
+app.get('/api/v1/content',async (req, res) => {
+    //@ts-ignore
+    const userId = req.userId
+    const content = await contentModel.find({ userId: userId }).populate("userId", "username");
+    res.json(content);  // Send the content as response
 })
 
-app.delete('/api/v1/content', (req, res) => {
-    
+//-------------------Delete---------------------------------------------------------------
+
+
+app.delete('/api/v1/content',async (req : CustomRequest , res : Response) => {
+    const contentId = req.body.contentId
+    await contentModel.deleteMany({
+        contentId,
+        userId : req.userId
+    })
+    res.json({
+        msg : "Deleted"
+    })
 })
+
+//-------------------Share content--------------------------------------------------
+
 
 app.delete('/api/v1/brain/:shareLink', (req, res) => {
     
 })
+
+//-------------------Main-Function---------------------------------------------------
 
 
 async function main() : Promise<void> {
